@@ -1,0 +1,14 @@
+.btn-on-click{
+    margin-left: 10px;
+    
+}
+
+.search-card{
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.search-card-box{
+    margin-top: 20px;
+}
