@@ -476,6 +476,7 @@ export default function PokemonSearch() {
   const [selectedPokemon, setSelectedPokemon] = useState(null);
   const [zoomedPokemon, setZoomedPokemon] = useState(null);
   const [favoriteIds, setFavoriteIds] = useState([]);
+  const [favoriteMachineMoves, setFavoriteMachineMoves] = useState([]);
 
   useEffect(() => {
     document.body.style.background = TYPE_BACKGROUNDS[selectedType];
@@ -523,12 +524,13 @@ export default function PokemonSearch() {
     .map((move) => ({
       ...move,
       holders: move.holders.filter((pokemon) =>
-        (!showFavorites || favoriteIds.includes(pokemon.id)) &&
         (selectedType === 'all' || pokemon.types.some(({ type }) => type.name === selectedType))
       )
     }))
     .filter((move) =>
-      move.name.includes(searchInput.trim().toLowerCase()) && move.holders.length > 0
+      move.name.includes(searchInput.trim().toLowerCase()) &&
+      move.holders.length > 0 &&
+      (!showFavorites || favoriteMachineMoves.includes(move.name))
     )
     .sort((first, second) => first.name.localeCompare(second.name));
 
@@ -555,6 +557,16 @@ export default function PokemonSearch() {
         : [...current, pokemonId]
     ));
   };
+
+  const toggleMachineMoveFavorite = (moveName) => {
+    setFavoriteMachineMoves((current) => (
+      current.includes(moveName)
+        ? current.filter((name) => name !== moveName)
+        : [...current, moveName]
+    ));
+  };
+
+  const favoriteCount = showMachineMoves ? favoriteMachineMoves.length : favoriteIds.length;
 
   return (
     <div className={`app-container theme-type-${selectedType}`}>
@@ -598,7 +610,7 @@ export default function PokemonSearch() {
             setShowFavorites((current) => !current);
             setSelectedType('all');
           }}
-          aria-label={`Show favorites, ${favoriteIds.length} saved`}
+          aria-label={`Show favorites, ${favoriteCount} saved`}
           aria-pressed={showFavorites}
           title={showFavorites ? 'Show all Pokemon' : 'Show favorites'}
         >
@@ -606,7 +618,7 @@ export default function PokemonSearch() {
             <path d="M20.8 8.7c0 5.2-8.8 10.1-8.8 10.1S3.2 13.9 3.2 8.7A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z" />
           </svg>
           <span>Favorites</span>
-          <span className="favorites-count">{favoriteIds.length}</span>
+          <span className="favorites-count">{favoriteCount}</span>
         </button>
       </form>
 
@@ -649,16 +661,32 @@ export default function PokemonSearch() {
           </section>
           <div className="tm-move-list" aria-label="TM moves">
             {filteredMachineMoves.length > 0 ? filteredMachineMoves.map((move) => (
-              <button
+              <div
                 className={`tm-move-row ${selectedMachineMove?.name === move.name ? 'is-selected' : ''}`}
                 key={move.name}
-                type="button"
-                onClick={() => selectMachineMove(move)}
-                aria-pressed={selectedMachineMove?.name === move.name}
               >
-                <span className="tm-row-name">{move.name.replaceAll('-', ' ')}</span>
-                <span className="tm-row-count">{move.holders.length} {move.holders.length === 1 ? 'holder' : 'holders'}</span>
-              </button>
+                <button
+                  className={`tm-move-favorite ${favoriteMachineMoves.includes(move.name) ? 'is-favorite' : ''}`}
+                  type="button"
+                  onClick={() => toggleMachineMoveFavorite(move.name)}
+                  aria-label={favoriteMachineMoves.includes(move.name) ? `Remove ${move.name.replaceAll('-', ' ')} from favorites` : `Add ${move.name.replaceAll('-', ' ')} to favorites`}
+                  aria-pressed={favoriteMachineMoves.includes(move.name)}
+                  title={favoriteMachineMoves.includes(move.name) ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <svg viewBox="0 0 24 24" fill={favoriteMachineMoves.includes(move.name) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                    <path d="M20.8 8.7c0 5.2-8.8 10.1-8.8 10.1S3.2 13.9 3.2 8.7A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z" />
+                  </svg>
+                </button>
+                <button
+                  className="tm-move-select"
+                  type="button"
+                  onClick={() => selectMachineMove(move)}
+                  aria-pressed={selectedMachineMove?.name === move.name}
+                >
+                  <span className="tm-row-name">{move.name.replaceAll('-', ' ')}</span>
+                  <span className="tm-row-count">{move.holders.length} {move.holders.length === 1 ? 'holder' : 'holders'}</span>
+                </button>
+              </div>
             )) : (
               <p className="empty-state">No TM moves match these filters.</p>
             )}
