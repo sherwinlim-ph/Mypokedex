@@ -53,51 +53,97 @@ body::after {
     align-items: center;
     gap: 10px;
     margin: 0 auto 42px;
-    max-width: 520px;
+    max-width: 720px;
+}
+
+.search-section input,
+.search-section select,
+.favorites-filter-btn {
+    height: 50px;
+    color: #172033;
+    background: rgba(255, 255, 255, 0.9);
+    font: inherit;
+    border: 1px solid #d8dfd9;
+    border-radius: 12px;
+    outline: none;
+    box-shadow: 0 8px 20px rgba(35, 52, 48, 0.07);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .search-section input {
-    width: 100%;
-    padding: 15px 20px;
-    color: #172033;
-    background: rgba(255, 255, 255, 0.86);
-    font: inherit;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0 16px;
     font-size: 0.95rem;
-    border: 1px solid #d8dfd9;
-    border-radius: 14px;
-    outline: none;
-    box-shadow: 0 12px 30px rgba(35, 52, 48, 0.08);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .search-section input::placeholder {
     color: #87928c;
 }
 
-.search-section input:focus {
+.search-section input:focus,
+.search-section select:focus,
+.favorites-filter-btn:focus-visible {
     border-color: #2f8f83;
-    box-shadow: 0 0 0 4px rgba(47, 143, 131, 0.14), 0 14px 32px rgba(35, 52, 48, 0.1);
-    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px rgba(47, 143, 131, 0.14), 0 8px 20px rgba(35, 52, 48, 0.07);
 }
 
 .search-section select {
     flex: 0 0 142px;
-    padding: 15px 34px 15px 14px;
-    color: #172033;
-    background: rgba(255, 255, 255, 0.86);
-    font: inherit;
+    padding: 0 30px 0 14px;
     font-size: 0.85rem;
-    border: 1px solid #d8dfd9;
-    border-radius: 14px;
-    outline: none;
     cursor: pointer;
-    box-shadow: 0 12px 30px rgba(35, 52, 48, 0.08);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.search-section select:focus {
-    border-color: #2f8f83;
-    box-shadow: 0 0 0 4px rgba(47, 143, 131, 0.14), 0 14px 32px rgba(35, 52, 48, 0.1);
+.favorites-filter-btn {
+    display: flex;
+    flex: 0 0 142px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.favorites-filter-btn svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+
+.favorites-filter-btn.is-active {
+    color: #b13e58;
+    background: #fff0f3;
+    border-color: #eac8d0;
+}
+
+.favorites-count {
+    min-width: 1.5em;
+    color: #65736c;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.favorites-filter-btn.is-active .favorites-count {
+    color: inherit;
+}
+
+.favorites-filter-btn:hover {
+    border-color: #b7c9bd;
+}
+
+.favorites-filter-btn.is-active:hover {
+    border-color: #dfaeb9;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    margin: 24px 0;
+    color: #65736c;
+    text-align: center;
 }
 
 .pokedex-grid {
@@ -306,7 +352,7 @@ body::after {
     left: 0;
     width: 100vw;
     height: 100vh;
-    padding: 20px;
+    padding: 12px;
     background: rgba(23, 32, 51, 0.62);
     backdrop-filter: blur(10px);
     display: flex;
@@ -319,9 +365,8 @@ body::after {
     background: #fbfcfa;
     padding: 62px 26px 24px;
     border-radius: 24px;
-    width: 90%;
-    max-width: 400px;
-    height: min(620px, calc(100dvh - 32px));
+    width: min(100%, 400px);
+    height: min(620px, calc(100dvh - 24px));
     overflow: hidden;
     position: relative;
     display: flex;
@@ -367,93 +412,88 @@ body::after {
 
 .card-close-btn {
     position: absolute;
-    top: 14px;
+    top: 12px;
     right: 16px;
-    width: 34px;
-    height: 34px;
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    padding: 0;
     background: #eef2ee;
     border: 1px solid #dce5de;
-    border-radius: 50%;
+    border-radius: 8px;
     font-size: 1.4rem;
     line-height: 1;
     cursor: pointer;
     color: #52605a;
-    transition: background 0.2s ease, transform 0.2s ease;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
 
-.card-flip-btn {
+.card-flip-btn,
+.card-location-btn,
+.card-skills-btn,
+.card-favorite-btn {
     position: absolute;
     top: 12px;
-    left: 16px;
     z-index: 2;
     display: grid;
     width: 42px;
     height: 42px;
     place-items: center;
     padding: 0;
-    color: #fff;
-    background: #245e57;
-    border: 1px solid #174d45;
+    color: #52605a;
+    background: #eef2ee;
+    border: 1px solid #dce5de;
     border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0 5px 14px rgba(20, 68, 60, 0.22);
-    transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
 
-.flip-icon {
+.card-flip-btn { left: 16px; }
+.card-location-btn { left: 66px; }
+.card-skills-btn { left: 116px; }
+.card-favorite-btn { left: 166px; }
+
+.flip-icon,
+.location-icon,
+.skills-icon,
+.card-favorite-btn svg {
     width: 21px;
     height: 21px;
 }
 
-.card-flip-btn:hover {
-    background: #174d45;
-    box-shadow: 0 7px 16px rgba(20, 68, 60, 0.28);
-    transform: translateY(-1px);
-}
-
-.card-location-btn {
-    position: absolute;
-    top: 12px;
-    left: 66px;
-    z-index: 2;
-    display: grid;
-    width: 42px;
-    height: 42px;
-    place-items: center;
-    padding: 0;
-    color: #245e57;
-    background: #e8f0e9;
-    border: 1px solid #c8dbcc;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 5px 14px rgba(20, 68, 60, 0.14);
-    transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
-}
-
-.location-icon {
-    width: 21px;
-    height: 21px;
-}
-
-.card-location-btn:hover {
-    background: #dceae0;
-    box-shadow: 0 7px 16px rgba(20, 68, 60, 0.2);
-    transform: translateY(-1px);
-}
-
-.card-location-btn:focus-visible {
-    outline: 3px solid #f0bd59;
-    outline-offset: 3px;
-}
-
-.card-flip-btn:focus-visible {
-    outline: 3px solid #f0bd59;
-    outline-offset: 3px;
-}
-
+.card-flip-btn:hover,
+.card-location-btn:hover,
+.card-skills-btn:hover,
+.card-favorite-btn:hover,
 .card-close-btn:hover {
     background: #dfeae2;
-    transform: rotate(90deg);
+    border-color: #c8dbcc;
+    transform: translateY(-1px);
+}
+
+.card-flip-btn[aria-pressed="true"],
+.card-location-btn[aria-pressed="true"],
+.card-skills-btn[aria-pressed="true"] {
+    color: #245e57;
+    background: #dfeae2;
+    border-color: #c8dbcc;
+}
+
+.card-favorite-btn.is-favorite,
+.card-favorite-btn.is-favorite:hover {
+    color: #d14b67;
+    background: #fff0f3;
+    border-color: #eadcdf;
+}
+
+.card-flip-btn:focus-visible,
+.card-location-btn:focus-visible,
+.card-skills-btn:focus-visible,
+.card-favorite-btn:focus-visible,
+.card-close-btn:focus-visible {
+    outline: 3px solid #f0bd59;
+    outline-offset: 3px;
 }
 
 .card-header {
@@ -469,14 +509,6 @@ body::after {
     object-fit: contain;
     margin-bottom: 10px;
     filter: drop-shadow(0 12px 8px rgba(35, 52, 48, 0.14));
-}
-
-.card-stats {
-    margin-top: 24px;
-    background: #eef3ef;
-    border: 1px solid #dfe8e1;
-    border-radius: 16px;
-    padding: 14px 16px;
 }
 
 .weakness-kicker {
@@ -511,8 +543,8 @@ body::after {
 .image-zoom-content {
     position: relative;
     display: grid;
-    width: min(82vw, 560px);
-    height: min(82vw, 560px);
+    width: min(82vw, 82dvh, 560px);
+    height: min(82vw, 82dvh, 560px);
     place-items: center;
     background: #fbfcfa;
     border-radius: 24px;
@@ -536,6 +568,128 @@ body::after {
     flex: 1;
     flex-direction: column;
     min-height: 0;
+}
+
+.skills-view {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.skills-hero {
+    display: grid;
+    flex: 0 0 142px;
+    grid-template-columns: 124px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    min-height: 0;
+    margin-bottom: 14px;
+    padding: 0 0 14px;
+    overflow: hidden;
+    border-bottom: 1px solid #dfe8e1;
+}
+
+.skills-artwork {
+    width: 124px;
+    height: 124px;
+    object-fit: contain;
+    filter: drop-shadow(0 5px 4px rgba(35, 52, 48, 0.12));
+}
+
+.skills-identity {
+    min-width: 0;
+}
+
+.skills-identity .pokemon-id {
+    margin-bottom: 4px;
+    text-align: left;
+}
+
+.skills-identity .pokemon-name {
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.skills-identity .types-container {
+    justify-content: flex-start;
+    gap: 4px;
+}
+
+.skills-identity .type-badge {
+    min-width: 0;
+    padding: 4px 7px;
+    font-size: 0.6rem;
+}
+
+.skills-list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+    padding: 0;
+}
+
+.skills-list-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0 2px 9px;
+    border-bottom: 1px solid #dfe8e1;
+}
+
+.skills-list-heading h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.skills-list-heading span {
+    color: #65736c;
+    font-size: 0.72rem;
+}
+
+.skill-item {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-height: 58px;
+    padding: 8px 4px;
+    color: #245e57;
+    border-bottom: 1px solid #e6ebe7;
+    text-transform: capitalize;
+}
+
+.skill-index {
+    color: #87928c;
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.skill-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    min-width: 0;
+}
+
+.skill-copy strong {
+    font-size: 0.88rem;
+    overflow-wrap: anywhere;
+}
+
+.skill-copy small {
+    color: #65736c;
+    font-size: 0.68rem;
+    text-transform: none;
 }
 
 .location-list {
@@ -620,7 +774,7 @@ body::after {
     gap: 9px;
     min-height: 0;
     align-content: start;
-    overflow: hidden;
+    overflow-y: auto;
     margin-top: 0;
     padding: 14px;
     background: #eef3ef;
@@ -738,6 +892,28 @@ body::after {
         justify-content: flex-start;
         gap: 12px;
         margin-bottom: 6px;
+    }
+
+    .skills-hero {
+        flex-basis: 100px;
+        grid-template-columns: 88px minmax(0, 1fr);
+        margin-bottom: 6px;
+        padding: 0 0 6px;
+    }
+
+    .skills-artwork {
+        width: 88px;
+        height: 88px;
+    }
+
+    .skills-identity .pokemon-name {
+        margin-bottom: 4px;
+        font-size: 1rem;
+    }
+
+    .skills-identity .type-badge {
+        padding: 4px 6px;
+        font-size: 0.56rem;
     }
 
     .card-img {
@@ -908,11 +1084,23 @@ body::after {
     .search-section {
         align-items: stretch;
         flex-direction: column;
+        gap: 10px;
+        margin-bottom: 28px;
     }
 
     .search-section select {
         flex-basis: auto;
         width: 100%;
+    }
+
+    .favorites-filter-btn {
+        flex-basis: auto;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .favorites-count {
+        margin-left: 4px;
     }
 
     .pokemon-card {
@@ -926,12 +1114,23 @@ body::after {
 
     .pokemon-name {
         font-size: 1rem;
+        overflow-wrap: anywhere;
     }
 
     .type-badge {
         min-width: 54px;
         padding-inline: 8px;
         font-size: 0.63rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .pokedex-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pokemon-card {
+        padding-inline: 18px;
     }
 }
 

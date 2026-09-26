@@ -102,10 +102,11 @@ function PokemonCard({ pokemon, onSelect, onViewImage, isFavorite, onToggleFavor
   );
 }
 
-function PokemonDetails({ pokemon, onClose }) {
+function PokemonDetails({ pokemon, onClose, isFavorite, onToggleFavorite }) {
   const mainType = pokemon.types[0].type.name;
   const [showWeaknesses, setShowWeaknesses] = useState(false);
   const [showLocations, setShowLocations] = useState(false);
+  const [showSkills, setShowSkills] = useState(false);
   const [weaknesses, setWeaknesses] = useState([]);
   const [weaknessesLoading, setWeaknessesLoading] = useState(true);
   const [weaknessesError, setWeaknessesError] = useState(false);
@@ -192,8 +193,9 @@ function PokemonDetails({ pokemon, onClose }) {
         onClick={(event) => {
           event.stopPropagation();
           if (event.target.closest('button')) return;
-          if (showLocations) {
+          if (showLocations || showSkills) {
             setShowLocations(false);
+            setShowSkills(false);
             return;
           }
           setShowWeaknesses((current) => !current);
@@ -211,11 +213,12 @@ function PokemonDetails({ pokemon, onClose }) {
           type="button"
           onClick={() => {
             setShowLocations(false);
+            setShowSkills(false);
             setShowWeaknesses((current) => !current);
           }}
-          aria-label={showWeaknesses ? 'Flip to stats' : 'Flip to weaknesses'}
-          aria-pressed={showWeaknesses && !showLocations}
-          title={showWeaknesses ? 'Flip to stats' : 'Flip to weaknesses'}
+          aria-label={showWeaknesses ? 'Show stats' : 'Show weaknesses'}
+          aria-pressed={showWeaknesses && !showLocations && !showSkills}
+          title={showWeaknesses ? 'Show stats' : 'Show weaknesses'}
         >
           <svg
             className="flip-icon"
@@ -227,15 +230,18 @@ function PokemonDetails({ pokemon, onClose }) {
             strokeLinejoin="round"
             aria-hidden="true"
           >
-            <path d="M12 3v18" />
-            <path d="m16 7 4 5-4 5" />
-            <path d="m8 7-4 5 4 5" />
+            <path d="M12 3 19 6v5c0 4.6-2.9 8-7 10-4.1-2-7-5.4-7-10V6l7-3Z" />
+            <path d="m9 12 2 2 4-4" />
           </svg>
         </button>
         <button
           className="card-location-btn"
           type="button"
-          onClick={() => setShowLocations(true)}
+          onClick={() => {
+            setShowWeaknesses(false);
+            setShowSkills(false);
+            setShowLocations(true);
+          }}
           aria-label={`Show where ${pokemon.name} can be found`}
           aria-pressed={showLocations}
           title="Show where this Pokemon can be found"
@@ -255,6 +261,36 @@ function PokemonDetails({ pokemon, onClose }) {
           </svg>
         </button>
         <button
+          className="card-skills-btn"
+          type="button"
+          onClick={() => {
+            setShowWeaknesses(false);
+            setShowLocations(false);
+            setShowSkills(true);
+          }}
+          aria-label={`Show ${pokemon.name}'s skills`}
+          aria-pressed={showSkills}
+          title="Show skills"
+        >
+          <svg className="skills-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 3h6l1 3 3 1v6l-3 1-1 3H9l-1-3-3-1V7l3-1 1-3Z" />
+            <path d="m9.5 10.5 1.7 1.7 3.5-3.7" />
+            <path d="M9 20h6" />
+          </svg>
+        </button>
+        <button
+          className={`card-favorite-btn ${isFavorite ? 'is-favorite' : ''}`}
+          type="button"
+          onClick={() => onToggleFavorite(pokemon.id)}
+          aria-label={isFavorite ? `Remove ${pokemon.name} from favorites` : `Add ${pokemon.name} to favorites`}
+          aria-pressed={isFavorite}
+          title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <svg viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <path d="M20.8 8.7c0 5.2-8.8 10.1-8.8 10.1S3.2 13.9 3.2 8.7A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z" />
+          </svg>
+        </button>
+        <button
           className="card-close-btn"
           onClick={(event) => {
             event.stopPropagation();
@@ -265,7 +301,7 @@ function PokemonDetails({ pokemon, onClose }) {
           &times;
         </button>
 
-        <div className={`card-face ${showLocations ? 'card-face-locations' : showWeaknesses ? 'card-face-weaknesses' : 'card-face-stats'}`}>
+        <div className={`card-face ${showLocations ? 'card-face-locations' : showSkills ? 'card-face-skills' : showWeaknesses ? 'card-face-weaknesses' : 'card-face-stats'}`}>
           {showLocations ? (
             <div className="location-view">
               <div className="card-header">
@@ -298,6 +334,36 @@ function PokemonDetails({ pokemon, onClose }) {
                       <circle cx="12" cy="10" r="2.5" />
                     </svg>
                     <span>{location.replaceAll('-', ' ')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : showSkills ? (
+            <div className="skills-view">
+              <div className="skills-hero">
+                <img
+                  className="skills-artwork"
+                  src={pokemon.sprites.other?.['official-artwork']?.front_default || pokemon.sprites.front_default}
+                  alt={`${pokemon.name} official artwork`}
+                />
+                <div className="skills-identity">
+                  <p className={`pokemon-id text-type-${mainType}`}>#{pokemon.id}</p>
+                  <h2 className="pokemon-name">{pokemon.name}</h2>
+                  <TypeBadges types={pokemon.types} />
+                </div>
+              </div>
+              <div className="skills-list" aria-label={`${pokemon.name}'s abilities`}>
+                <div className="skills-list-heading">
+                  <h3>Abilities</h3>
+                  <span>{pokemon.abilities.length} listed</span>
+                </div>
+                {pokemon.abilities.map(({ ability, is_hidden }, index) => (
+                  <div className="skill-item" key={ability.name}>
+                    <span className="skill-index">{String(index + 1).padStart(2, '0')}</span>
+                    <div className="skill-copy">
+                      <strong>{ability.name.replaceAll('-', ' ')}</strong>
+                      {is_hidden && <small>Hidden ability</small>}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -400,6 +466,7 @@ function PokemonImageZoom({ pokemon, onClose }) {
 export default function PokemonSearch() {
   const [searchInput, setSearchInput] = useState('');
   const [selectedType, setSelectedType] = useState('all');
+  const [showFavorites, setShowFavorites] = useState(false);
   const [pokemonList, setPokemonList] = useState([]);
   const [selectedPokemon, setSelectedPokemon] = useState(null);
   const [zoomedPokemon, setZoomedPokemon] = useState(null);
@@ -428,10 +495,8 @@ export default function PokemonSearch() {
 
   const filteredPokemon = pokemonList.filter((pokemon) =>
     pokemon.name.toLowerCase().includes(searchInput.toLowerCase()) &&
-    (selectedType === 'all' ||
-      (selectedType === 'favorites'
-        ? favoriteIds.includes(pokemon.id)
-        : pokemon.types.some(({ type }) => type.name === selectedType)))
+    (!showFavorites || favoriteIds.includes(pokemon.id)) &&
+    (selectedType === 'all' || pokemon.types.some(({ type }) => type.name === selectedType))
   );
 
   const toggleFavorite = (pokemonId) => {
@@ -457,17 +522,33 @@ export default function PokemonSearch() {
           aria-label="Filter Pokemon by type"
         >
           <option value="all">All types</option>
-          <option value="favorites">Favorites</option>
           {POKEMON_TYPES.map((type) => (
             <option key={type} value={type}>
               {formatTypeName(type)}
             </option>
           ))}
         </select>
+        <button
+          className={`favorites-filter-btn ${showFavorites ? 'is-active' : ''}`}
+          type="button"
+          onClick={() => {
+            setShowFavorites((current) => !current);
+            setSelectedType('all');
+          }}
+          aria-label={`Show favorites, ${favoriteIds.length} saved`}
+          aria-pressed={showFavorites}
+          title={showFavorites ? 'Show all Pokemon' : 'Show favorites'}
+        >
+          <svg viewBox="0 0 24 24" fill={showFavorites ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <path d="M20.8 8.7c0 5.2-8.8 10.1-8.8 10.1S3.2 13.9 3.2 8.7A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z" />
+          </svg>
+          <span>Favorites</span>
+          <span className="favorites-count">{favoriteIds.length}</span>
+        </button>
       </form>
 
       <div className="pokedex-grid">
-        {filteredPokemon.map((pokemon) => (
+        {filteredPokemon.length > 0 ? filteredPokemon.map((pokemon) => (
           <PokemonCard
             key={pokemon.id}
             pokemon={pokemon}
@@ -476,11 +557,18 @@ export default function PokemonSearch() {
             isFavorite={favoriteIds.includes(pokemon.id)}
             onToggleFavorite={toggleFavorite}
           />
-        ))}
+        )) : (
+          <p className="empty-state">{showFavorites ? 'No favorites saved.' : 'No Pokemon found.'}</p>
+        )}
       </div>
 
       {selectedPokemon && (
-        <PokemonDetails pokemon={selectedPokemon} onClose={() => setSelectedPokemon(null)} />
+        <PokemonDetails
+          pokemon={selectedPokemon}
+          onClose={() => setSelectedPokemon(null)}
+          isFavorite={favoriteIds.includes(selectedPokemon.id)}
+          onToggleFavorite={toggleFavorite}
+        />
       )}
       {zoomedPokemon && (
         <PokemonImageZoom pokemon={zoomedPokemon} onClose={() => setZoomedPokemon(null)} />
