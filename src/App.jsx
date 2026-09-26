@@ -467,6 +467,11 @@ export default function PokemonSearch() {
   const [searchInput, setSearchInput] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [showFavorites, setShowFavorites] = useState(false);
+  const [showMachineMoves, setShowMachineMoves] = useState(false);
+  const [selectedMachineMove, setSelectedMachineMove] = useState(null);
+  const [machineMoveDetails, setMachineMoveDetails] = useState(null);
+  const [machineMoveLoading, setMachineMoveLoading] = useState(false);
+  const [machineMoveError, setMachineMoveError] = useState(false);
   const [pokemonList, setPokemonList] = useState([]);
   const [selectedPokemon, setSelectedPokemon] = useState(null);
   const [zoomedPokemon, setZoomedPokemon] = useState(null);
@@ -499,6 +504,50 @@ export default function PokemonSearch() {
     (selectedType === 'all' || pokemon.types.some(({ type }) => type.name === selectedType))
   );
 
+  const machineMovesByName = new Map();
+  pokemonList.forEach((pokemon) => {
+    pokemon.moves.forEach(({ move, version_group_details }) => {
+      const learnedByMachine = version_group_details.some(
+        ({ move_learn_method }) => move_learn_method.name === 'machine'
+      );
+      if (!learnedByMachine) return;
+
+      if (!machineMovesByName.has(move.name)) {
+        machineMovesByName.set(move.name, { ...move, holders: [] });
+      }
+      machineMovesByName.get(move.name).holders.push(pokemon);
+    });
+  });
+
+  const filteredMachineMoves = [...machineMovesByName.values()]
+    .map((move) => ({
+      ...move,
+      holders: move.holders.filter((pokemon) =>
+        (!showFavorites || favoriteIds.includes(pokemon.id)) &&
+        (selectedType === 'all' || pokemon.types.some(({ type }) => type.name === selectedType))
+      )
+    }))
+    .filter((move) =>
+      move.name.includes(searchInput.trim().toLowerCase()) && move.holders.length > 0
+    )
+    .sort((first, second) => first.name.localeCompare(second.name));
+
+  const selectMachineMove = async (move) => {
+    setSelectedMachineMove(move);
+    setMachineMoveDetails(null);
+    setMachineMoveLoading(true);
+    setMachineMoveError(false);
+
+    try {
+      const { data } = await axios.get(move.url);
+      setMachineMoveDetails(data);
+    } catch {
+      setMachineMoveError(true);
+    } finally {
+      setMachineMoveLoading(false);
+    }
+  };
+
   const toggleFavorite = (pokemonId) => {
     setFavoriteIds((current) => (
       current.includes(pokemonId)
@@ -510,9 +559,23 @@ export default function PokemonSearch() {
   return (
     <div className={`app-container theme-type-${selectedType}`}>
       <form className="search-section" onSubmit={(event) => event.preventDefault()}>
+        <button
+          className={`tm-filter-btn ${showMachineMoves ? 'is-active' : ''}`}
+          type="button"
+          onClick={() => {
+            setShowMachineMoves((current) => !current);
+            setSelectedMachineMove(null);
+            setMachineMoveDetails(null);
+          }}
+          aria-pressed={showMachineMoves}
+          title={showMachineMoves ? 'Show Pokemon' : 'Browse TM moves'}
+        >
+          <span aria-hidden="true">TM</span>
+          <span>Moves</span>
+        </button>
         <input
           type="text"
-          placeholder="Search Pokemon"
+          placeholder={showMachineMoves ? 'Search TM moves' : 'Search Pokemon'}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
@@ -547,20 +610,76 @@ export default function PokemonSearch() {
         </button>
       </form>
 
-      <div className="pokedex-grid">
-        {filteredPokemon.length > 0 ? filteredPokemon.map((pokemon) => (
-          <PokemonCard
-            key={pokemon.id}
-            pokemon={pokemon}
-            onSelect={setSelectedPokemon}
-            onViewImage={setZoomedPokemon}
-            isFavorite={favoriteIds.includes(pokemon.id)}
-            onToggleFavorite={toggleFavorite}
-          />
-        )) : (
-          <p className="empty-state">{showFavorites ? 'No favorites saved.' : 'No Pokemon found.'}</p>
-        )}
-      </div>
+      {showMachineMoves ? (
+        <div className="tm-browser">
+          <section className="tm-detail" aria-live="polite">
+            {selectedMachineMove ? (
+              <>
+              <div className="tm-detail-heading">
+                <div>
+                  <p className="tm-eyebrow">TM move</p>
+                  <h2>{selectedMachineMove.name.replaceAll('-', ' ')}</h2>
+                </div>
+                {machineMoveDetails && (
+                  <span className={`type-badge bg-type-${machineMoveDetails.type.name}`}>
+                    {machineMoveDetails.type.name}
+                  </span>
+                )}
+              </div>
+              {machineMoveLoading && <p className="tm-description-message">Loading move details...</p>}
+              {machineMoveError && <p className="tm-description-message">Move details could not be loaded.</p>}
+              {machineMoveDetails && (
+                <>
+                  <p className="tm-description">
+                    {machineMoveDetails.flavor_text_entries.find(({ language }) => language.name === 'en')?.flavor_text
+                      .replace(/[\f\n\r]/g, ' ') || 'No English description is available.'}
+                  </p>
+                  <div className="tm-move-stats">
+                    <span>Category <strong>{machineMoveDetails.damage_class.name}</strong></span>
+                    <span>Power <strong>{machineMoveDetails.power ?? '--'}</strong></span>
+                    <span>Accuracy <strong>{machineMoveDetails.accuracy ?? '--'}</strong></span>
+                    <span>PP <strong>{machineMoveDetails.pp}</strong></span>
+                  </div>
+                </>
+              )}
+              </>
+            ) : (
+              <p className="tm-detail-placeholder">Choose a move to see its description.</p>
+            )}
+          </section>
+          <div className="tm-move-list" aria-label="TM moves">
+            {filteredMachineMoves.length > 0 ? filteredMachineMoves.map((move) => (
+              <button
+                className={`tm-move-row ${selectedMachineMove?.name === move.name ? 'is-selected' : ''}`}
+                key={move.name}
+                type="button"
+                onClick={() => selectMachineMove(move)}
+                aria-pressed={selectedMachineMove?.name === move.name}
+              >
+                <span className="tm-row-name">{move.name.replaceAll('-', ' ')}</span>
+                <span className="tm-row-count">{move.holders.length} {move.holders.length === 1 ? 'holder' : 'holders'}</span>
+              </button>
+            )) : (
+              <p className="empty-state">No TM moves match these filters.</p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="pokedex-grid">
+          {filteredPokemon.length > 0 ? filteredPokemon.map((pokemon) => (
+            <PokemonCard
+              key={pokemon.id}
+              pokemon={pokemon}
+              onSelect={setSelectedPokemon}
+              onViewImage={setZoomedPokemon}
+              isFavorite={favoriteIds.includes(pokemon.id)}
+              onToggleFavorite={toggleFavorite}
+            />
+          )) : (
+            <p className="empty-state">{showFavorites ? 'No favorites saved.' : 'No Pokemon found.'}</p>
+          )}
+        </div>
+      )}
 
       {selectedPokemon && (
         <PokemonDetails
