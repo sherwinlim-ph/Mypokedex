@@ -166,6 +166,8 @@ body::after {
     transition: transform 0.25s ease, box-shadow 0.25s ease;
     cursor: pointer;
     border: 1px solid rgba(216, 223, 217, 0.9);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 .pokemon-card::before {
@@ -376,6 +378,8 @@ body::after {
     box-shadow: 0 28px 70px rgba(11, 21, 35, 0.3);
     animation: fadeIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
     border: 4px solid transparent;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 .card-content:focus-visible {
@@ -393,21 +397,16 @@ body::after {
 }
 
 .card-face-weaknesses {
-    animation: flip-to-weaknesses 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation: face-fade-in 0.14s ease-out both;
 }
 
 .card-face-stats {
-    animation: flip-to-stats 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation: face-fade-in 0.14s ease-out both;
 }
 
-@keyframes flip-to-weaknesses {
-    from { opacity: 0.5; transform: rotateY(180deg); }
-    to { opacity: 1; transform: rotateY(0); }
-}
-
-@keyframes flip-to-stats {
-    from { opacity: 0.5; transform: rotateY(-180deg); }
-    to { opacity: 1; transform: rotateY(0); }
+@keyframes face-fade-in {
+    from { opacity: 0.75; }
+    to { opacity: 1; }
 }
 
 .card-close-btn {
@@ -426,6 +425,8 @@ body::after {
     line-height: 1;
     cursor: pointer;
     color: #52605a;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
     transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
 
@@ -446,6 +447,8 @@ body::after {
     border: 1px solid #dce5de;
     border-radius: 8px;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
     transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
 
